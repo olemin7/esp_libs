@@ -17,7 +17,7 @@
  Pin 0 o-----------
  */
 
-class CADC_filter: public SignalChange<int> {
+class CADC_filter: public SignalLoop<int> {
     std::array<int, 10> m_filter;
     uint8_t m_count = 0; //average count
     static constexpr int m_refreshPeriod = 100; // ms
@@ -29,7 +29,10 @@ class CADC_filter: public SignalChange<int> {
             m_Pin(_Pin) {
     }
     ;
+    //    bool isChanged(const int &lhs, const int &rhs) override {
+//        return false;
+//    }
     void setup();
-    int getValue();
+    bool getValue(int &val);
 };
 

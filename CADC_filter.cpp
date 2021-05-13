@@ -11,7 +11,7 @@ void CADC_filter::setup() {
     pinMode(m_Pin, INPUT);
 }
 
-int CADC_filter::getValue() {
+bool CADC_filter::getValue(int &value) {
     const auto now = millis();
     if (now >= m_nextRead) {
         m_nextRead = now + m_refreshPeriod;
@@ -25,6 +25,9 @@ int CADC_filter::getValue() {
             m_count++;
         }
     }
-    return m_count ? (std::accumulate(m_filter.begin(), m_filter.end(), 0) / m_count) : 0;
-
+    if (m_count) {
+        value = std::accumulate(m_filter.begin(), m_filter.end(), 0) / m_count;
+        return true;
+    }
+    return false;
 }

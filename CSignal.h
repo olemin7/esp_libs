@@ -39,45 +39,32 @@ private:
         return lhs != rhs;
     }
 public:
-    void onSignal(std::function<void(const T&)> _onSignal) {
-        m_onSignal.push_back(_onSignal);
+    T getPreValue() const {
+        return m_preVal;
     }
-    void onChange(std::function<void(const T&)> _onSignal) {
-        m_onChange.push_back(_onSignal);
+    void onSignal(std::function<void(const T&)> _handler) {
+        m_onSignal.push_back(_handler);
+    }
+    void onChange(std::function<void(const T&)> _handler) {
+        m_onChange.push_back(_handler);
+    }
+    ~Signal() {
     }
 };
 
 template<class T>
 class SignalLoop: public Signal<T> {
-public:
-    virtual void begin() =0;
-    virtual void loop()=0;
-    virtual ~SignalLoop() {
-    }
-};
-
-template<class T>
-class SignalChange: public SignalLoop<T> {
 private:
-    T value;
-    private:
-    virtual T getValue() =0;
-
-public:
-    void begin() override {
-        this->notify(getValue());
-    }
-    void loop() override {
-        const T tmp = getValue();
-        if (tmp != value) {
-            value = tmp;
+    virtual bool getValue(T &value) =0;
+    public:
+    virtual void loop() {
+        T value;
+        if (getValue(value)) {
             this->notify(value);
         }
     }
-    virtual ~SignalChange() {
-    }
-    T getSavedValue() const {
-        return value;
+public:
+    ~SignalLoop() {
     }
 };
 

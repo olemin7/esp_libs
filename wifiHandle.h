@@ -33,8 +33,8 @@ typedef enum {
 
 void webRetResult(ESP8266WebServer &server, te_ret res);
 
-class CWifiStateSignal: public SignalChange<wl_status_t> {
-    wl_status_t getValue() override;
+class CWifiStateSignal: public SignalLoop<wl_status_t> {
+    bool getValue(wl_status_t &val) override;
 
 };
 

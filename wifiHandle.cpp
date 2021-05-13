@@ -60,8 +60,9 @@ void webRetResult(ESP8266WebServer &server, te_ret res)
     }
 }
 
-wl_status_t CWifiStateSignal::getValue() {
-    return WiFi.status();
+bool CWifiStateSignal::getValue(wl_status_t &val) {
+    val = WiFi.status();
+    return true;
 }
 void wifiHandle_send_content_json(ESP8266WebServer &server, std::function<te_ret(std::ostream &out)> content) {
     DBG_FUNK();
