@@ -251,7 +251,7 @@ string getResetInfo() {
         info << ",depc=" << std::hex << rst_info->depc;
 //The   address of  the last    crash   is  printed,    which   is  used    to debug garbled output.
     }
-    info << std::endl;
+    info << std::dec << std::endl;
     return info.str();
 }
 std::string to_string(uint32_t ul)

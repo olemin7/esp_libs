@@ -17,9 +17,6 @@ bool CADC_filter::getValue(int &value) {
         m_nextRead = now + m_refreshPeriod;
         std::rotate(m_filter.rbegin(), m_filter.rbegin() + 1, m_filter.rend());
         auto val = analogRead(m_Pin);
-        if (1 < m_Tolerance) {
-            val = (val / m_Tolerance) * m_Tolerance; //rounding
-        }
         m_filter[0] = val;
         if (m_count < m_filter.size()) {
             m_count++;
@@ -31,3 +28,4 @@ bool CADC_filter::getValue(int &value) {
     }
     return false;
 }
+

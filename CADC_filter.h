@@ -23,15 +23,15 @@ class CADC_filter: public SignalLoop<int> {
     static constexpr int m_refreshPeriod = 100; // ms
     unsigned long m_nextRead = 0;
     const int m_Pin;
-    const int m_Tolerance = 10;
+    const int m_Tolerance;
     public:
-    CADC_filter(int _Pin = A0) :
-            m_Pin(_Pin) {
+    CADC_filter(int _Pin = A0, int tolerance = 5) :
+            m_Pin(_Pin), m_Tolerance(tolerance) {
     }
     ;
-    //    bool isChanged(const int &lhs, const int &rhs) override {
-//        return false;
-//    }
+    bool isChanged(const int &lhs, const int &rhs) override {
+        return (lhs > (rhs + m_Tolerance)) || (lhs < (rhs - m_Tolerance));
+    }
     void setup();
     bool getValue(int &val);
 };
