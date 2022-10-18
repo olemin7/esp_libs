@@ -7,9 +7,10 @@
 
 #ifndef CLOCK_CMQTT_H_
 #define CLOCK_CMQTT_H_
-#include <WiFiClient.h>
 #include <PubSubClient.h>
-#include <string.h>
+#include <WiFiClient.h>
+
+#include <string>
 
 class CMQTT {
 protected:

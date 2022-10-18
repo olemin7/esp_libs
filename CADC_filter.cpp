@@ -4,8 +4,10 @@
  *  Created on: 11 ???. 2017 ?.
  *      Author: User
  */
-#include <ESP8266WiFi.h>
 #include <CADC_filter.h>
+#include <ESP8266WiFi.h>
+
+#include <numeric>
 
 void CADC_filter::setup() {
     pinMode(m_Pin, INPUT);
