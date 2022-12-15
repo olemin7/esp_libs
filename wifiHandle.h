@@ -41,7 +41,8 @@ class CWifiStateSignal: public SignalLoop<wl_status_t> {
 void wifiHandle_loop();
 void wifiHandle_send_content_json(ESP8266WebServer &server, std::function<te_ret(std::ostream &out)> content);
 void wifiHandle_sendlist(ESP8266WebServer &server);
-void wifiHandle_connect(ESP8266WebServer &server, bool pers = true);
+void wifiHandle_connect(const std::string device_name, ESP8266WebServer &server,
+                        bool pers);
 void setup_wifi(const String &ssid, const String &pwd, const String &host_name, const WiFiMode_t &wifi_mode);
 void wifiList(std::ostream &out);
 void wifi_status(std::ostream &out);
