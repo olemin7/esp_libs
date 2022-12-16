@@ -4,7 +4,7 @@
  *  Created on: 29 ????. 2017 ?.
  *      Author: User
  */
-
+#ifdef CLOCK_CMQTT_H_
 #include "CMQTT.h"
 #include "logs.h"
 #include "wifiHandle.h"
@@ -51,4 +51,4 @@ void CMQTT::reconnect() {
 bool CMQTT::publish(const string &topic, const string &message) {
     return client.publish(topic.c_str(), message.c_str());
 }
-
+#endif

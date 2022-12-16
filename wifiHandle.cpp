@@ -4,7 +4,7 @@
  *  30 dec-2020
  *      Author: ominenko
  */
-
+#ifdef WIFIHANDLE_CPP
 #include "wifiHandle.h"
 #include "logs.h"
 #include "misk.h"
@@ -202,3 +202,4 @@ void wifi_status(std::ostream &out) {
     }
     out << endl;
 }
+#endif

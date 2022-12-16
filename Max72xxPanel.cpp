@@ -13,6 +13,7 @@
  BSD license, check license.txt for more information.
  All text above must be included in any redistribution.
  ******************************************************************/
+#ifdef Max72xxPanel_h
 
 #include <Adafruit_GFX.h>
 #include "Max72xxPanel.h"
@@ -195,3 +196,5 @@ void Max72xxPanel::spiTransfer(byte opcode, byte data) {
 	digitalWrite(SPI_CS, HIGH);
   delayMicroseconds(10);
 }
+
+#endif
