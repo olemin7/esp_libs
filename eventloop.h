@@ -16,6 +16,7 @@ class cevent_loop {
   struct event_t{
     int16_t id;
     uint64_t when;
+    uint64_t delay = 0;
     std ::function<void()> handler;
   } ;
   std ::vector<event_t> _list;
@@ -23,7 +24,8 @@ class cevent_loop {
 
  public:
   cevent_loop();
-  int16_t on_timeout(uint64_t milliseconds, std ::function<void()> handler);
+  int16_t set_timeout(std ::function<void()> &&handler, uint64_t milliseconds);
+  int16_t set_interval(std ::function<void()> &&handler, uint64_t milliseconds);
   void loop();
   void remove(const int16_t id);
   virtual ~cevent_loop();

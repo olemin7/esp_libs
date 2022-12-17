@@ -4,8 +4,7 @@
  *  30 dec-2020
  *      Author: ominenko
  */
-#ifndef WIFIHANDLE_H
-#define WIFIHANDLE_H
+#pragma once
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <string>
@@ -46,4 +45,3 @@ void wifiHandle_connect(const std::string device_name, ESP8266WebServer &server,
 void setup_wifi(const String &ssid, const String &pwd, const String &host_name, const WiFiMode_t &wifi_mode);
 void wifiList(std::ostream &out);
 void wifi_status(std::ostream &out);
-#endif

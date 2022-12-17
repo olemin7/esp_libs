@@ -14,10 +14,18 @@
 cevent_loop::cevent_loop() {
   // TODO Auto-generated constructor stub
 }
-int16_t cevent_loop::on_timeout(uint64_t milliseconds,
-                                std ::function<void()> handler) {
+int16_t cevent_loop::set_timeout(std ::function<void()> &&handler,
+                                 uint64_t milliseconds) {
   const auto id = get_id();
-  _list.emplace_back(event_t{id, millis() + milliseconds, handler});
+  _list.emplace_back(event_t{id, millis() + milliseconds, 0, handler});
+  return id;
+}
+
+int16_t cevent_loop::set_interval(std ::function<void()> &&handler,
+                                  uint64_t milliseconds) {
+  const auto id = get_id();
+  _list.emplace_back(
+      event_t{id, millis() + milliseconds, milliseconds, handler});
   return id;
 }
 
@@ -38,8 +46,12 @@ void cevent_loop::loop() {
   while (it != _list.end()) {
     if (ms >= it->when) {  // lunch one by loop
       auto handler = it->handler;
-      _list.erase(it);
       handler();
+      if (it->delay) {  // set_interval
+        it->when = ms + it->delay;
+      } else {
+        _list.erase(it);
+      }
       return;
     } else {
       it++;
