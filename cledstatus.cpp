@@ -15,7 +15,13 @@ void cled_status::loop() {
   if (!mask_) {
     mask_ = 1;
   }
-  digitalWrite(LED_BUILTIN, (mask_ & pattern_) != 0);
+
+  const auto is_On = digitalRead(LED_BUILTIN) == 0;
+  const auto set_On = (mask_ & pattern_) != 0;
+  if (is_On != set_On) {
+    digitalWrite(LED_BUILTIN, !set_On);  // 0 -turn on
+  }
+
   mask_ = mask_ << 1;
 }
 
