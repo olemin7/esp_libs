@@ -17,6 +17,32 @@ ostream& operator<<(ostream &os, const IPAddress &ip) {
     return os;
 }
 
+std::string to_str(const wl_status_t status) {
+  switch (status) {
+    case WL_NO_SHIELD:
+      return "WL_NO_SHIELD";
+    case WL_IDLE_STATUS:
+      return "WL_IDLE_STATUS";
+    case WL_NO_SSID_AVAIL:
+      return "WL_NO_SSID_AVAIL";
+    case WL_SCAN_COMPLETED:
+      return "WL_SCAN_COMPLETED";
+    case WL_CONNECTED:
+      return "WL_CONNECTED";
+    case WL_CONNECT_FAILED:
+      return "WL_CONNECT_FAILED";
+    case WL_CONNECTION_LOST:
+      return "WL_CONNECTION_LOST";
+    case WL_WRONG_PASSWORD:
+      return "WL_WRONG_PASSWORD";
+    case WL_DISCONNECTED:
+      return "WL_DISCONNECTED";
+  }
+  std::string unknown;
+  unknown = static_cast<unsigned>(status);
+  return unknown + "unknown";
+}
+
 void webRetResult(ESP8266WebServer &server, te_ret res)
         {
     DBG_OUT << "Err:" << (unsigned) res << endl;
@@ -115,46 +141,62 @@ void wifiHandle_loop() {
 
 void wifiHandle_connect(const std::string device_name, ESP8266WebServer &server,
                         bool pers) {
-  auto retVal = er_last;
-  do {
-    if (server.hasArg("mode") && (server.arg("mode") == "WIFI_AP")) {
-      String pwd = "";
-      if (server.hasArg("pwd")) {
-        pwd = server.arg("pwd");
-      }
-      webRetResult(server, er_ok);
-      WiFi.persistent(pers);
-      delay(500);
-
-      WiFi.mode(WIFI_AP);
-      WiFi.softAP(device_name.c_str(), pwd);
-      DBG_OUT << "start AP=" << device_name << ", pwd=" << pwd
-              << ",ip:" << WiFi.softAPIP() << endl;
-    } else {
-      String ssid;
-      String pwd = "";
-      // sta
-      if (!server.hasArg("ssid")) {
-        retVal = er_no_parameters;
-        break;
-      }
-      ssid = server.arg("ssid");
-      if (server.hasArg("pwd")) {
-        pwd = server.arg("pwd");
-      }
-      webRetResult(server, er_ok);
-      WiFi.persistent(pers);
-      delay(500);
-      DBG_OUT << "connecting ssid=" << ssid << ", pwd=" << pwd
-              << ",ip:" << WiFi.softAPIP() << ", device:" << device_name
-              << endl;
-      WiFi.hostname(device_name.c_str());
-      WiFi.mode(WIFI_STA);
-      WiFi.begin(ssid.c_str(), pwd.c_str());
+  DBG_FUNK();
+  if (server.hasArg("mode") && (server.arg("mode") == "WIFI_AP")) {
+    String pwd = "";
+    if (server.hasArg("pwd")) {
+      pwd = server.arg("pwd");
     }
-    return;
-  } while (0);
-  webRetResult(server, retVal);
+    webRetResult(server, er_ok);
+
+    WiFi.persistent(pers);
+    delay(500);  // to sent reply
+
+    WiFi.mode(WIFI_AP);
+    WiFi.softAP(device_name.c_str(), pwd);
+    DBG_OUT << "start AP=" << device_name << ", pwd=" << pwd
+            << ",ip:" << WiFi.softAPIP() << ", pers=" << pers << endl;
+
+  } else {
+    String ssid;
+    String pwd = "";
+    // sta
+    if (!server.hasArg("ssid")) {
+      webRetResult(server, er_no_parameters);
+      return;
+    }
+    ssid = server.arg("ssid");
+    if (server.hasArg("pwd")) {
+      pwd = server.arg("pwd");
+    }
+
+    WiFi.persistent(pers);
+    delay(500);
+    DBG_OUT << "connecting ssid=" << ssid << ", pwd=" << pwd
+            << ", device:" << device_name << ", pers=" << pers << std::endl;
+
+    WiFi.hostname(device_name.c_str());
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid.c_str(), pwd.c_str());
+    const auto ms = millis() + 5000;
+    bool err_exit = false;
+    while ((millis() < ms) && (!err_exit)) {
+      DBG_OUT << ".";
+      switch (WiFi.status()) {
+        case WL_CONNECTED:
+          webRetResult(server, er_ok);
+          return;
+        case WL_CONNECT_FAILED:
+        case WL_NO_SSID_AVAIL:
+        case WL_WRONG_PASSWORD:
+          err_exit = true;
+          return;
+        default:
+          break;
+      }
+      delay(500);
+    }
+  }
 }
 
 void setup_wifi(const String &ssid, const String &pwd, const String &host_name,
@@ -193,9 +235,10 @@ void wifiList(std::ostream &out) {
 void wifi_status(std::ostream &out) {
     out << "WiFi: mode=" << WiFi.getMode();
     if (WIFI_STA == WiFi.getMode()) {
-        out << "(STA), SSID=" << WiFi.SSID() << ", status=" << WiFi.status();
-        if (WL_CONNECTED == WiFi.status()) {
-            out << ", ip=" << WiFi.localIP();
+      out << "(STA), SSID=" << WiFi.SSID() << ", status=" << WiFi.status()
+          << "(" << to_str(WiFi.status()) << ")";
+      if (WL_CONNECTED == WiFi.status()) {
+        out << ", ip=" << WiFi.localIP();
         }
     } else {
         out << "(AP), host= " << WiFi.hostname() << ", ip=" << WiFi.softAPIP();
