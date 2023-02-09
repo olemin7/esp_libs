@@ -62,7 +62,11 @@ void cevent_loop::loop() {
 }
 
 void cevent_loop::remove(const int16_t id) {
-  remove_ids_.emplace(id);
+  auto it = std::find_if(_list.cbegin(), _list.cend(),
+                         [id](auto el) { return el.id == id; });
+  if (_list.cend() != it) {
+    remove_ids_.emplace(id);
+  }
 }
 
 cevent_loop::~cevent_loop() {
