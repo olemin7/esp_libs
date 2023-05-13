@@ -21,35 +21,33 @@ private:
     std::vector<std::function<void(const T&)> > m_onSignal;
     std::vector<std::function<void(const T&)> > m_onChange;
     bool m_firstTime = true; //for first mine init;
-    T m_preVal;
-    protected:
+    T m_lastVal;
+
+   protected:
     void notify(const T &value) {
         for (auto &iterator : m_onSignal) {
             iterator(value);
         }
-        if (m_firstTime || isChanged(value, m_preVal)) {
-            m_firstTime = false;
-            m_preVal = value;
-            for (auto &iterator : m_onChange) {
-                iterator(value);
-            }
+        if (m_firstTime || isChanged(value, m_lastVal)) {
+          m_firstTime = false;
+          m_lastVal = value;
+          for (auto &iterator : m_onChange) {
+            iterator(value);
+          }
         }
     }
     virtual bool isChanged(const T &lhs, const T &rhs) {
         return lhs != rhs;
     }
 public:
-    T getPreValue() const {
-        return m_preVal;
-    }
-    void onSignal(std::function<void(const T&)> _handler) {
-        m_onSignal.push_back(_handler);
+ T getLastValue() const { return m_lastVal; }
+ void onSignal(std::function<void(const T &)> _handler) {
+   m_onSignal.push_back(_handler);
     }
     void onChange(std::function<void(const T&)> _handler) {
         m_onChange.push_back(_handler);
     }
-    ~Signal() {
-    }
+    virtual ~Signal() = default;
 };
 
 template<class T>
@@ -64,7 +62,34 @@ private:
         }
     }
 public:
-    ~SignalLoop() {
-    }
+ virtual ~SignalLoop() = default;
 };
 
+template <class T>
+class SignalDebounceLoop : public SignalLoop<T> {
+ private:
+  virtual T get_raw() = 0;
+  const uint32_t event_timeout_;
+  const uint64_t timeout_;
+  T prevalue;
+
+  virtual bool getValue(T &value) final {
+    const auto ms = millis();
+    const auto raw = get_raw();
+    if (raw == prevalue) {
+      timeout_ = 0;
+    } else if (timeout_) {
+      if (ms > timeout_) {
+        value = prevalue = raw;  // debounce ok
+        return true;
+      }
+    } else {
+      timeout_ = ms + event_timeout_;
+    }
+    return false;
+  }
+
+ public:
+  SignalDebounceLoop(uint32_t event_timeout) : event_timeout_(){};
+  virtual ~SignalDebounceLoop() = default;
+};

@@ -113,67 +113,61 @@ void wifiHandle_loop() {
     }
 }
 
-void wifiHandle_connect(ESP8266WebServer &server, bool pers) {
-
-    auto retVal = er_last;
-    do {
-        if (server.hasArg("mode") && (server.arg("mode") == "WIFI_AP")) {
-            String pwd = "";
-            if (!server.hasArg("name")) {
-                retVal = er_no_parameters;
-                break;
-            }
-            const auto name = server.arg("name");
-            if (server.hasArg("pwd")) {
-                pwd = server.arg("pwd");
-            }
-            webRetResult(server, er_ok);
-            WiFi.persistent(pers);
-            delay(500);
-
-            WiFi.mode(WIFI_AP);
-            WiFi.softAP(name, pwd);
-            DBG_OUT << "start AP=" << name << ", pwd=" << pwd << ",ip:" << WiFi.softAPIP() << endl;
-        } else {
-            String ssid;
-            String pwd = "";
-            //sta
-            if (!server.hasArg("ssid")) {
-                retVal = er_no_parameters;
-                break;
-            }
-            ssid = server.arg("ssid");
-            if (server.hasArg("pwd")) {
-                pwd = server.arg("pwd");
-            }
-            webRetResult(server, er_ok);
-            WiFi.persistent(pers);
-            delay(500);
-            DBG_OUT << "connecting ssid=" << ssid << ", pwd=" << pwd << ",ip:" << WiFi.softAPIP() << endl;
-            WiFi.mode(WIFI_STA);
-            WiFi.begin(ssid.c_str(), pwd.c_str());
-        }
-        return;
-    } while (0);
-    webRetResult(server, retVal);
+void wifiHandle_connect(const std::string host_name, ESP8266WebServer &server,
+                        bool pers) {
+  auto retVal = er_last;
+  do {
+    if (server.hasArg("mode") && (server.arg("mode") == "WIFI_AP")) {
+      String pwd = "";
+      if (server.hasArg("pwd")) {
+        pwd = server.arg("pwd");
+      }
+      webRetResult(server, er_ok);
+      delay(500);
+      setup_wifi("", pwd, host_name.c_str(), WIFI_AP, pers);
+    } else {
+      String ssid;
+      String pwd = "";
+      // sta
+      if (!server.hasArg("ssid")) {
+        retVal = er_no_parameters;
+        break;
+      }
+      ssid = server.arg("ssid");
+      if (server.hasArg("pwd")) {
+        pwd = server.arg("pwd");
+      }
+      webRetResult(server, er_ok);
+      delay(500);
+      setup_wifi(ssid, pwd, host_name.c_str(), WIFI_STA, pers);
+    }
+    return;
+  } while (0);
+  webRetResult(server, retVal);
 }
 
 void setup_wifi(const String &ssid, const String &pwd, const String &host_name,
-        const WiFiMode_t &wifi_mode) {
-    // Set hostname first
-    DBG_OUT << "hostname:" << host_name << ",pwd:" << pwd << ",Mode:" << WiFi.getPhyMode() << endl;
-    WiFi.hostname(host_name);
-    // Reduce startup surge current
-    WiFi.setAutoConnect(true);
-    WiFi.setAutoReconnect(true);
-    WiFi.mode(wifi_mode);
-    WiFi.setPhyMode(WIFI_PHY_MODE_11N);
-    if (WIFI_STA == wifi_mode) {
-        WiFi.begin(ssid.c_str(), pwd.c_str());
-    } else {
-        WiFi.mode(WIFI_AP);
-        WiFi.softAP(host_name.c_str(), pwd.c_str());
-    }
+                const WiFiMode_t &wifi_mode, bool pers) {
+  // Set hostname first
+  DBG_OUT << "hostname:" << host_name << ",pwd:" << pwd
+          << ",Mode:" << WiFi.getSleepMode() << ",pers=" << pers << endl;
+  WiFi.persistent(pers);
+  WiFi.hostname(host_name);
+  // Reduce startup surge current
+  WiFi.setAutoConnect(true);
+  WiFi.setAutoReconnect(true);
+  WiFi.mode(wifi_mode);
+  WiFi.setPhyMode(WIFI_PHY_MODE_11G);
+  if (WIFI_STA == wifi_mode) {
+    DBG_OUT << "connecting ssid=" << ssid << ", pwd=" << pwd
+            << ", host_name:" << host_name << endl;
+    WiFi.begin(ssid.c_str(), pwd.c_str());
+  } else {
+    DBG_OUT << "start AP=" << host_name << ", pwd=" << pwd
+            << ",ip:" << WiFi.softAPIP() << endl;
+    WiFi.mode(WIFI_AP);
+    WiFi.softAP(host_name.c_str(), pwd.c_str());
+  }
 }
 
 /*******************************************************************************
