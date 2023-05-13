@@ -65,21 +65,24 @@ public:
  virtual ~SignalLoop() = default;
 };
 
+//+send change on startup after debounce passed
 template <class T>
 class SignalDebounceLoop : public SignalLoop<T> {
  private:
-  virtual T get_raw() = 0;
+  std::function<T()> get_raw_;
   const uint32_t event_timeout_;
-  const uint64_t timeout_;
+  uint64_t timeout_;
+  bool is_need_init_;
   T prevalue;
 
   virtual bool getValue(T &value) final {
     const auto ms = millis();
-    const auto raw = get_raw();
-    if (raw == prevalue) {
+    const auto raw = get_raw_();
+    if (!is_need_init_ && (raw == prevalue)) {
       timeout_ = 0;
     } else if (timeout_) {
       if (ms > timeout_) {
+        is_need_init_ = false;
         value = prevalue = raw;  // debounce ok
         return true;
       }
@@ -90,6 +93,10 @@ class SignalDebounceLoop : public SignalLoop<T> {
   }
 
  public:
-  SignalDebounceLoop(uint32_t event_timeout) : event_timeout_(){};
+  SignalDebounceLoop(uint32_t event_timeout, std::function<T()> &&get_raw)
+      : get_raw_(std::move(get_raw)),
+        event_timeout_(event_timeout),
+        timeout_(0),
+        is_need_init_(true){};
   virtual ~SignalDebounceLoop() = default;
 };

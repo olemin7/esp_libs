@@ -4,7 +4,7 @@
  *  30 dec-2020
  *      Author: ominenko
  */
-
+#ifdef WIFIHANDLE_CPP
 #include "wifiHandle.h"
 #include "logs.h"
 #include "misk.h"
@@ -15,6 +15,32 @@ using namespace std;
 ostream& operator<<(ostream &os, const IPAddress &ip) {
     os << ip.toString().c_str();
     return os;
+}
+
+std::string to_str(const wl_status_t status) {
+  switch (status) {
+    case WL_NO_SHIELD:
+      return "WL_NO_SHIELD";
+    case WL_IDLE_STATUS:
+      return "WL_IDLE_STATUS";
+    case WL_NO_SSID_AVAIL:
+      return "WL_NO_SSID_AVAIL";
+    case WL_SCAN_COMPLETED:
+      return "WL_SCAN_COMPLETED";
+    case WL_CONNECTED:
+      return "WL_CONNECTED";
+    case WL_CONNECT_FAILED:
+      return "WL_CONNECT_FAILED";
+    case WL_CONNECTION_LOST:
+      return "WL_CONNECTION_LOST";
+    case WL_WRONG_PASSWORD:
+      return "WL_WRONG_PASSWORD";
+    case WL_DISCONNECTED:
+      return "WL_DISCONNECTED";
+  }
+  std::string unknown;
+  unknown = static_cast<unsigned>(status);
+  return unknown + "unknown";
 }
 
 void webRetResult(ESP8266WebServer &server, te_ret res)
@@ -188,12 +214,14 @@ void wifiList(std::ostream &out) {
 void wifi_status(std::ostream &out) {
     out << "WiFi: mode=" << WiFi.getMode();
     if (WIFI_STA == WiFi.getMode()) {
-        out << "(STA), SSID=" << WiFi.SSID() << ", status=" << WiFi.status();
-        if (WL_CONNECTED == WiFi.status()) {
-            out << ", ip=" << WiFi.localIP();
+      out << "(STA), SSID=" << WiFi.SSID() << ", status=" << WiFi.status()
+          << "(" << to_str(WiFi.status()) << ")";
+      if (WL_CONNECTED == WiFi.status()) {
+        out << ", ip=" << WiFi.localIP();
         }
     } else {
         out << "(AP), host= " << WiFi.hostname() << ", ip=" << WiFi.softAPIP();
     }
     out << endl;
 }
+#endif

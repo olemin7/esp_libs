@@ -37,7 +37,9 @@ struct CompareCStrings
         return strcmp(lhs, rhs) < 0;
     }
 };
+std::string rst_reason_to_string(const uint32_t rst);
 std::string getResetInfo();
+
 std::string to_string(uint32_t ul);
 
 /*
