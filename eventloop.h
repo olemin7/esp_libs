@@ -6,32 +6,44 @@
  */
 
 #pragma once
+#include <chrono>
+#include <functional>
+#include <memory>
 #include <stdint.h>
 
-#include <functional>
-#include <set>
-#include <vector>
+namespace event_loop {
+class ievent {
+protected:
+  std::chrono::steady_clock::time_point when_;
+  bool is_actual_ = true;
+  std::function<void()> handler_;
+  virtual void rearm() = 0;
 
-class cevent_loop {
- private:
-  struct event_t{
-    int16_t id;
-    uint64_t when;
-    uint64_t delay = 0;
-    std ::function<void()> handler;
-  } ;
-  std ::vector<event_t> _list;
-  std ::set<int16_t> remove_ids_;
-  int16_t get_id();
-
- public:
-  cevent_loop();
-  int16_t set_timeout(std ::function<void()> &&handler, uint64_t milliseconds);
-//force_start==true - first call will be immediately
-  int16_t set_interval(std ::function<void()> &&handler, uint64_t milliseconds,
-                       bool force_start = false);
-  void loop();
-  void remove(const int16_t id);
-  virtual ~cevent_loop();
+public:
+  explicit ievent(std::function<void()> &&handler,
+                  std::chrono::steady_clock::time_point when)
+      : when_(when), handler_(std::move(handler)) {}
+  void trigger() {
+    if (is_actual_) {
+      handler_();
+      rearm();
+    }
+  }
+  auto get_when() const { return when_; }
+  auto get_isActual() const { return is_actual_; }
+  void cancel() { is_actual_ = false; }
+  virtual ~ievent() = default;
 };
 
+using pevent = std::shared_ptr<ievent>;
+
+pevent set_timeout(std::function<void()> &&handler,
+                   std::chrono::steady_clock::duration timeout);
+//force_start==true - first call will be immediately
+pevent set_interval(std::function<void()> &&handler,
+                    std::chrono::steady_clock::duration period,
+                    bool force_start = false);
+void init();
+void loop();
+
+} // namespace event_loop
