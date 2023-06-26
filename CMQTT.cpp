@@ -16,39 +16,38 @@ CMQTT::CMQTT() :
 }
 
 void CMQTT::setup(const char *domain, uint16_t port, const char *aClientID) {
-    DBG_OUT << "MQTT Server:" << domain << ", port:" << std::dec << port << ", ClientID:" << aClientID << std::endl;
-    m_ClientID = aClientID;
-    client.setServer(domain, port);
+  DBG_OUT << "MQTT Server:" << domain << ", port:" << std::dec << port
+          << ", ClientID:" << aClientID << std::endl;
+  m_ClientID = aClientID;
+  client.setServer(domain, port);
 }
 
-void CMQTT::loop() {
-    if (!client.connected()) {
-        reconnect();
-        return;
+void CMQTT::connect(on_connect_cb_t &&cb) {
+  if (client.connected()) {
+    DBG_OUT << "already connected" << std::endl;
+    cb(true);
+    return;
+  }
+  DBG_OUT << "Attempting MQTT connection..." << std::endl;
+  // Attempt to connect
+  if (client.connect(m_ClientID)) {
+    DBG_OUT << "connected" << std::endl;
+    ostringstream line;
+    line << "{\"name\":" << m_ClientID << ",\"ip\":" << WiFi.localIP() << "}";
+    publish("connected", line.str());
+    // ... and resubscribe
+    if (!m_cb_topic.empty()) {
+      client.subscribe(m_cb_topic.c_str());
     }
-    client.loop();
+    cb(true);
+  } else {
+    DBG_OUT << "failed, rc=" << client.state() << std::endl;
+    cb(false);
+  }
 }
-void CMQTT::reconnect() {
-    if (client.connected())
-        return;
-    const long now = millis();
-    if (now < reconnectTimeOut) // time out is not passed yet
-        return;
-    DBG_OUT << "Attempting MQTT connection..." << std::endl;
-    // Attempt to connect
-    if (client.connect(m_ClientID)) {
-        DBG_OUT << "connected" << std::endl;
-        ostringstream line;
-        line << "{\"name\":" << m_ClientID << ",\"ip\":" << WiFi.localIP() << "}";
-        publish("connected", line.str());
-        // ... and resubscribe
-        client.subscribe(m_cb_topic.c_str());
-    } else {
-        DBG_OUT << "failed, rc=" << client.state() << std::endl;
-    }
-    reconnectTimeOut = now + recconectTimeOut;
-}
+
 bool CMQTT::publish(const string &topic, const string &message) {
-    return client.publish(topic.c_str(), message.c_str());
+  DBG_OUT << "topic=" << topic << ", message=" << message << std::endl;
+  return client.publish(topic.c_str(), message.c_str());
 }
 #endif
