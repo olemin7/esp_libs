@@ -27,6 +27,7 @@ public:
         On ,
         Off ,
         Warning ,
+        Processing,
         Work
     };
 

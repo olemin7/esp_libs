@@ -75,6 +75,20 @@ public:
   }
 };
 
+class gen_processing : public igenerator {
+private:
+  bool on = true;
+
+public:
+  virtual bool next() override {
+    on = !on;
+    return on;
+  }
+  virtual std::chrono::steady_clock::duration period() override {
+        return (on) ? 1ms : 100ms;
+  }
+};
+
 cled_status::cled_status() : impl_(std::make_unique<implementation>()) {}
 cled_status::~cled_status() = default;
 
@@ -93,6 +107,9 @@ void cled_status::set(value_t en) {
     break;
   case value_t::Work:
     impl_->set(std::make_unique<gen_work>());
+    break;
+  case value_t::Processing:
+    impl_->set(std::make_unique<gen_processing>());
     break;
   default:
     DBG_OUT << "incorrect enum" << static_cast<int>(en) << std::endl;
