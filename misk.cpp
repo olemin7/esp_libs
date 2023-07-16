@@ -13,12 +13,12 @@
 #include "user_interface.h"
 using namespace std;
 
-ostream& operator<<(ostream &os, const String &str) {
+ostream& operator<<(ostream& os, const String& str) {
     os << str.c_str();
     return os;
 }
 
-void toJson(std::ostream &os, const float &var) {
+void toJson(std::ostream& os, const float& var) {
     if (isnan(var)) {
         os << "null";
     } else {
@@ -26,56 +26,23 @@ void toJson(std::ostream &os, const float &var) {
     }
 }
 
-ostream& operator<<(ostream &os, const timeStatus_t &state) {
-    switch (state) {
-        case timeNotSet:
-            os << "timeNotSet";
-            break;
-        case timeNeedsSync:
-            os << "timeNeedsSync";
-            break;
-        case timeSet:
-            os << "timeSet";
-            break;
-        default:
-            os << "unknown";
-            break;
-    }
-    return os;
-}
-
-void toDate(std::ostream &os, const time_t &time) {
-    char tt[11];
-    sprintf(tt, "%d-%.02d-%02d", year(time), month(time), day(time));
-    os << tt;
-}
-void toTime(std::ostream &os, const time_t &time) {
-    char tt[9];
-    sprintf(tt, "%d:%.02d:%.02d", hour(time), minute(time), second(time)); //hh:mm:ss
-    os << tt;
-}
-
-void LED_ON()
-{
+void LED_ON() {
     digitalWrite(LED_BUILTIN, LOW);
 }
 
-void LED_OFF()
-{
+void LED_OFF() {
     digitalWrite(LED_BUILTIN, HIGH);
 }
 
-void blink()
-{
+void blink() {
     LED_ON();
     delay(100);
     LED_OFF();
     delay(400);
 }
 
-String getMimeType(String path)
-        {
-// ------------------------
+String getMimeType(String path) {
+    // ------------------------
     if (path.endsWith(".html"))
         return "text/html";
     else if (path.endsWith(".htm"))
@@ -123,26 +90,23 @@ String getMimeType(String path)
     return "application/octet-stream";
 }
 
-void hw_info(std::ostream &out)
-        {
+void hw_info(std::ostream& out) {
     out << "Compiled " << __DATE__ << " " << __TIME__;
     out << "hw_info ->" << endl;
     out << "CpuFreqMHz " << ESP.getCpuFreqMHz() << endl;
     out << "getFreeHeap " << ESP.getFreeHeap() << endl;
     const auto realSize = ESP.getFlashChipRealSize();
-    const auto ideSize = ESP.getFlashChipSize();
-    const auto ideMode = ESP.getFlashChipMode();
+    const auto ideSize  = ESP.getFlashChipSize();
+    const auto ideMode  = ESP.getFlashChipMode();
     out << "Flash info" << endl;
     out << "id:" << ESP.getFlashChipId() << endl;
     out << "size:" << realSize << endl;
-    if (ideSize != realSize)
-            {
+    if (ideSize != realSize) {
         out << "!!Different size\nFlash IDE size:" << ideSize << endl;
     }
     out << "ide speed:" << ESP.getFlashChipSpeed() << endl;
     out << "ide mode: ";
-    switch (ideMode)
-    {
+    switch (ideMode) {
         case FM_QIO:
             out << "QIO" << endl;
             break;
@@ -162,8 +126,7 @@ void hw_info(std::ostream &out)
     out << "<- Flash info";
 }
 
-void LittleFS_info(std::ostream &out)
-        {
+void LittleFS_info(std::ostream& out) {
     out << "LittleFS_info" << endl;
     FSInfo info;
     LittleFS.info(info);
@@ -173,34 +136,28 @@ void LittleFS_info(std::ostream &out)
     out << "nBlock:" << info.blockSize << " Page:" << info.pageSize << endl;
     out << "nMax open files:" << info.maxOpenFiles << endl;
     out << "maxPathLength:" << info.maxPathLength << endl;
-//
+    //
     out << "files:" << endl;
-    auto dir = LittleFS.openDir("/");
+    auto dir   = LittleFS.openDir("/");
     auto index = 0;
-    while (dir.next())
-    {
+    while (dir.next()) {
         out << index++ << "." << dir.fileName() << " SZ:" << dir.fileSize() << endl;
     }
     out << "<--LittleFS_info" << endl;
 }
 
-bool isExtMach(const std::string &name, const std::string &ext)
-        {
+bool isExtMach(const std::string& name, const std::string& ext) {
     const auto pos = name.find_last_of('.');
-    if (std::string::npos == pos)
-            {
-        return false; //no extention
+    if (std::string::npos == pos) {
+        return false; // no extention
     }
     const auto fext = name.substr(pos + 1);
-    if (fext.length() != ext.length())
-            {
+    if (fext.length() != ext.length()) {
         return false;
     }
     auto n = fext.length();
-    while (n--)
-    {
-        if (std::toupper(fext.at(n)) != std::toupper(ext.at(n)))
-                {
+    while (n--) {
+        if (std::toupper(fext.at(n)) != std::toupper(ext.at(n))) {
             return false;
         }
     }
@@ -208,54 +165,52 @@ bool isExtMach(const std::string &name, const std::string &ext)
 }
 
 std::string rst_reason_to_string(const uint32_t rst) {
-  switch (rst) {
-    case REASON_DEFAULT_RST:
-      return "REASON_DEFAULT_RST";
-    case REASON_WDT_RST: /* hardware watch dog reset */
-      return "REASON_WDT_RST";
-    case REASON_EXCEPTION_RST: /* exception reset, GPIO status won’t change */
-      return "REASON_EXCEPTION_RST";
-    case REASON_SOFT_WDT_RST: /* software watch dog reset, GPIO status won’t
-                                 change */
-      return "REASON_SOFT_WDT_RST";
-    case REASON_SOFT_RESTART: /* software restart ,system_restart , GPIO status
-                                 won’t change */
-      return "REASON_SOFT_RESTART";
-    case REASON_DEEP_SLEEP_AWAKE: /* wake up from deep-sleep */
-      return "REASON_DEEP_SLEEP_AWAKE";
-    case REASON_EXT_SYS_RST: /* external system reset */
-      return "REASON_EXT_SYS_RST";
-    default:
-      return "unknow";
-  }
+    switch (rst) {
+        case REASON_DEFAULT_RST:
+            return "REASON_DEFAULT_RST";
+        case REASON_WDT_RST: /* hardware watch dog reset */
+            return "REASON_WDT_RST";
+        case REASON_EXCEPTION_RST: /* exception reset, GPIO status won’t change */
+            return "REASON_EXCEPTION_RST";
+        case REASON_SOFT_WDT_RST: /* software watch dog reset, GPIO status won’t
+                                     change */
+            return "REASON_SOFT_WDT_RST";
+        case REASON_SOFT_RESTART: /* software restart ,system_restart , GPIO status
+                                     won’t change */
+            return "REASON_SOFT_RESTART";
+        case REASON_DEEP_SLEEP_AWAKE: /* wake up from deep-sleep */
+            return "REASON_DEEP_SLEEP_AWAKE";
+        case REASON_EXT_SYS_RST: /* external system reset */
+            return "REASON_EXT_SYS_RST";
+        default:
+            return "unknow";
+    }
 }
 string getResetInfo() {
     ostringstream info;
-    const auto rst_info = system_get_rst_info();
+    const auto    rst_info = system_get_rst_info();
     info << "rst_info " << rst_info->reason << ":";
 
     info << rst_reason_to_string(rst_info->reason);
 
-    if (rst_info->reason == REASON_WDT_RST ||
-        rst_info->reason == REASON_EXCEPTION_RST ||
+    if (rst_info->reason == REASON_WDT_RST || rst_info->reason == REASON_EXCEPTION_RST ||
         rst_info->reason == REASON_SOFT_WDT_RST) {
-      if (rst_info->reason == REASON_EXCEPTION_RST) {
-        info << " exccause " << rst_info->exccause;
-      }
+        if (rst_info->reason == REASON_EXCEPTION_RST) {
+            info << " exccause " << rst_info->exccause;
+        }
 
-      info << " epc1=" << std::hex << rst_info->epc1;
-      info << ",epc2=" << std::hex << rst_info->epc2;
-      info << ",epc3=" << std::hex << rst_info->epc3;
-      info << ",excvaddr=" << std::hex << rst_info->excvaddr;
-      info << ",depc=" << std::hex << rst_info->depc;
-      // The   address of  the last    crash   is  printed,    which   is  used
-      // to debug garbled output.
+        info << " epc1=" << std::hex << rst_info->epc1;
+        info << ",epc2=" << std::hex << rst_info->epc2;
+        info << ",epc3=" << std::hex << rst_info->epc3;
+        info << ",excvaddr=" << std::hex << rst_info->excvaddr;
+        info << ",depc=" << std::hex << rst_info->depc;
+        // The   address of  the last    crash   is  printed,    which   is  used
+        // to debug garbled output.
     }
     info << std::dec << std::endl;
     return info.str();
 }
-std::string to_string(uint32_t ul)
-        {
+std::string to_string(uint32_t ul) {
     char tt[20];
     snprintf(tt, sizeof(tt) - 1, "%u", ul);
     tt[sizeof(tt) - 1] = 0;
@@ -268,9 +223,9 @@ bool isSafeMode(const uint8_t pin, unsigned long timeout) {
     delay(100);
     LED_ON();
     if (!digitalRead(pin)) {
-        const auto till = millis() + timeout;
+        const auto    till  = millis() + timeout;
         unsigned long blink = 0;
-        bool led = true;
+        bool          led   = true;
         while (1) {
             const auto now = millis();
             if (now > till) {
