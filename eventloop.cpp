@@ -36,8 +36,8 @@ class cinterval: public ievent {
     }
 
  public:
-    cinterval(std::function<void()>&& handler, std::chrono::steady_clock::duration period)
-        : ievent(std::move(handler), steady_clock::now() + period)
+    cinterval(std::function<void()>&& handler, std::chrono::steady_clock::duration period, bool call_on_start)
+        : ievent(std::move(handler), call_on_start ? steady_clock::now() : (steady_clock::now() + period))
         , period_(period) {}
 };
 
@@ -53,14 +53,11 @@ pevent set_timeout(std::function<void()>&& handler, std::chrono::steady_clock::d
     }
 }
 
-pevent set_interval(std::function<void()>&& handler, std::chrono::steady_clock::duration period, bool force_start) {
+pevent set_interval(std::function<void()>&& handler, std::chrono::steady_clock::duration period, bool call_on_start) {
     if (list_ptr) {
         DBG_OUT << "set_interval =" << std::chrono::duration_cast<std::chrono::milliseconds>(period).count() << "ms"
-                << std::endl;
-        list_ptr->emplace_back(std::make_shared<cinterval>(std::move(handler), period));
-        if (force_start) {
-            list_ptr->back()->trigger();
-        }
+                << ", call_on_start=" << call_on_start << std::endl;
+        list_ptr->emplace_back(std::make_shared<cinterval>(std::move(handler), period, call_on_start));
         return list_ptr->back();
     } else {
         DBG_OUT << "is not inited" << std::endl;

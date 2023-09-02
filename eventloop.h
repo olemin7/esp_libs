@@ -13,37 +13,42 @@
 
 namespace event_loop {
 class ievent {
-protected:
-  std::chrono::steady_clock::time_point when_;
-  bool is_actual_ = true;
-  std::function<void()> handler_;
-  virtual void rearm() = 0;
+ protected:
+    std::chrono::steady_clock::time_point when_;
+    bool                                  is_actual_ = true;
+    std::function<void()>                 handler_;
+    virtual void                          rearm() = 0;
 
-public:
-  explicit ievent(std::function<void()> &&handler,
-                  std::chrono::steady_clock::time_point when)
-      : when_(when), handler_(std::move(handler)) {}
-  void trigger() {
-    if (is_actual_) {
-      handler_();
-      rearm();
+ public:
+    explicit ievent(std::function<void()>&& handler, std::chrono::steady_clock::time_point when)
+        : when_(when)
+        , handler_(std::move(handler)) {}
+    void trigger() {
+        if (is_actual_) {
+            handler_();
+            rearm();
+        }
     }
-  }
-  auto get_when() const { return when_; }
-  auto get_isActual() const { return is_actual_; }
-  void cancel() { is_actual_ = false; }
-  virtual ~ievent() = default;
+
+    auto get_when() const {
+        return when_;
+    }
+    auto get_isActual() const {
+        return is_actual_;
+    }
+    void cancel() {
+        is_actual_ = false;
+    }
+    virtual ~ievent() = default;
 };
 
 using pevent = std::shared_ptr<ievent>;
 
-pevent set_timeout(std::function<void()> &&handler,
-                   std::chrono::steady_clock::duration timeout);
-//force_start==true - first call will be immediately
-pevent set_interval(std::function<void()> &&handler,
-                    std::chrono::steady_clock::duration period,
-                    bool force_start = false);
-void init();
-void loop();
+pevent set_timeout(std::function<void()>&& handler, std::chrono::steady_clock::duration timeout);
+// force_start==true - first call will be immediately
+pevent set_interval(std::function<void()>&& handler, std::chrono::steady_clock::duration period,
+    bool call_on_start = false);
+void   init();
+void   loop();
 
 } // namespace event_loop
