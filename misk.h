@@ -39,3 +39,4 @@ std::string to_string(uint32_t ul);
  *  on start 0 during timeout 1
  */
 bool isSafeMode(const uint8_t pin, unsigned long timeout);
+bool deboncedPin(const uint8_t pin, unsigned long timeout_ms);

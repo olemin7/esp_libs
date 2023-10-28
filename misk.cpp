@@ -250,3 +250,19 @@ bool isSafeMode(const uint8_t pin, unsigned long timeout) {
     LED_OFF();
     return result;
 }
+
+bool deboncedPin(const uint8_t pin, unsigned long timeout_ms) {
+    while (1) {
+        auto initial_val = digitalRead(pin);
+        auto wait_till   = millis() + timeout_ms;
+        while (1) {
+            delay(1);
+            if (initial_val != digitalRead(pin)) {
+                break;
+            }
+            if (wait_till < millis()) {
+                return initial_val;
+            }
+        }
+    }
+}
