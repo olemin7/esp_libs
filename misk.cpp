@@ -216,6 +216,14 @@ std::string to_string(uint32_t ul) {
     tt[sizeof(tt) - 1] = 0;
     return std::string(tt);
 }
+std::string to_hex(uint32_t ul) {
+    std::string res;
+    while (ul) {
+        res = "0123456789ABCDEF"[ul % 16] + res;
+        ul  = ul / 16;
+    }
+    return "0x" + res;
+}
 
 bool isSafeMode(const uint8_t pin, unsigned long timeout) {
     bool result = false;

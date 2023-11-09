@@ -35,6 +35,8 @@ std::string getResetInfo();
 
 std::string to_string(uint32_t ul);
 
+std::string to_hex(uint32_t ul);
+
 /*
  *  on start 0 during timeout 1
  */
