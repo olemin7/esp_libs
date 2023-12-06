@@ -19,13 +19,13 @@ void CMQTT::setup(const char* domain, uint16_t port, const char* aClientID) {
     DBG_OUT << "MQTT Server:" << domain << ", port:" << std::dec << port << ", ClientID:" << aClientID << std::endl;
     m_ClientID = aClientID;
     client.setServer(domain, port);
+    preState = client.connected();
 }
-
-void CMQTT::connect(on_connect_cb_t&& cb) {
+bool CMQTT::connect() {
     if (client.connected()) {
         DBG_OUT << "already connected" << std::endl;
-        cb(true);
-        return;
+        connection_changed(true);
+        return true;
     }
     DBG_OUT << "Attempting MQTT connection..." << std::endl;
     // Attempt to connect
@@ -35,13 +35,23 @@ void CMQTT::connect(on_connect_cb_t&& cb) {
         if (!m_cb_topic.empty()) {
             client.subscribe(m_cb_topic.c_str());
         }
-        cb(true);
+        connection_changed(true);
+        return true;
     } else {
         DBG_OUT << "failed, rc=" << client.state() << std::endl;
-        cb(false);
+        connection_changed(false);
+        return false;
     }
 }
-
+void CMQTT::loop() {
+    const bool state = isConnected();
+    if (preState != state) {
+        connection_changed(state);
+    }
+    if (state) {
+        client.loop();
+    }
+}
 bool CMQTT::publish(const string& topic, const string& message) {
     DBG_OUT << "topic=" << topic << ", message=" << message << std::endl;
     return client.publish(topic.c_str(), message.c_str());

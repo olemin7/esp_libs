@@ -29,7 +29,6 @@ class ievent {
             rearm();
         }
     }
-
     auto get_when() const {
         return when_;
     }
@@ -46,9 +45,11 @@ using pevent = std::shared_ptr<ievent>;
 
 pevent set_timeout(std::function<void()>&& handler, std::chrono::steady_clock::duration timeout);
 // force_start==true - first call will be immediately
+pevent set_interval(std::function<void()>&& handler, std::chrono::steady_clock::duration period);
 pevent set_interval(std::function<void()>&& handler, std::chrono::steady_clock::duration period,
-    bool call_on_start = false);
-void   init();
-void   loop();
+    std::chrono::steady_clock::duration start_delay);
+
+void init();
+void loop();
 
 } // namespace event_loop
